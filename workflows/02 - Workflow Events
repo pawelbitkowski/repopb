@@ -1,0 +1,19 @@
+name: 02 - Workflow Events
+
+on:
+  push:
+    branches:
+      - main # tylko push do main
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main # pull requesty do main
+  schedule:
+    - cron: '0 0 * * *'  # Codziennie o północy
+
+jobs:
+  echo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Show the triggering event
+        run: echo "I' ve been triggered by the workflow_dispatch event ${{ github.event_name }}"
