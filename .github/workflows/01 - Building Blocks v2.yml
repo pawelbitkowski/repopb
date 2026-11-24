@@ -2,10 +2,7 @@ name: 01 - Building Blocks v2
 
 on:
   #push:
-  workflow_dispatch:
-
-jobs:
-  echo-hello:
+  workflow_dispat
     runs-on: ubuntu-latest
     steps:
       - name: Say hello
