@@ -1,0 +1,151 @@
+name: 09 - Using functions jb
+
+on:
+  push:
+    branches:
+      - feature/06-pogoda-api
+      - main
+
+  pull_request:
+    branches:
+      - feature/06-pogoda-api
+
+  workflow_dispatch:
+
+jobs:
+    echo1:
+        runs-on: ubuntu-latest
+    
+    steps:
+      - name: Failing step
+        run: exit 0
+    
+      - name: I will be skipped
+        if: ${{ success() }}
+        run: echo "I will be print if previous step succedd"
+    
+      - name: I will be skipped
+        if: ${{ failure() }}
+        run: echo "I will be print if previous step failed"
+
+      - name: I will execute
+        if: ${{ !cancelled() }}
+        run: echo "I will always print, excpet when the workflow is canclled"
+
+      - name: I will execute whten cancelled        
+        if: ${{ cancelled() }}
+        run: echo "I will always print, only when the workflow is canclled"
+
+
+
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    env:
+      LOCAL_IMAGE_NAME: python_pogoda:test
+      WORKDIR: ./CWICZENIA/06-context/pogoda_python_flusk
+
+    steps:
+      # 1. Pobranie repozytorium
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Zbudowanie obrazu Docker
+      - name: Build Docker image
+        run: |
+          docker build -t "$LOCAL_IMAGE_NAME" "$WORKDIR"
+
+      # 3. Uruchomienie kontenera
+      - name: Run container
+        env:
+          OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
+        run: |
+          docker run -d \
+            --name pogoda_api \
+            -p 8000:8000 \
+            -e OPENWEATHER_API_KEY \
+            "$LOCAL_IMAGE_NAME"
+
+      # 4. Oczekiwanie na uruchomienie API
+      - name: Wait for API to start
+        run: |
+          echo "Waiting for API to start..."
+          sleep 10
+
+      # 5. Test endpointu /weather
+      - name: Test weather endpoint
+        env:
+          OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
+        run: |
+          set -e
+
+          echo "Testing /weather endpoint..."
+
+          RESPONSE_FILE="$(mktemp)"
+
+          HTTP_STATUS=$(curl -fsS -G \
+            -o "$RESPONSE_FILE" \
+            -w "%{http_code}" \
+            --data-urlencode "city=Warsaw" \
+            --data-urlencode "api_key=$OPENWEATHER_API_KEY" \
+            "http://localhost:8000/weather")
+
+          cat "$RESPONSE_FILE"
+          echo
+
+          if [[ "$HTTP_STATUS" != 2?? ]]; then
+            echo "Error: endpoint returned HTTP $HTTP_STATUS."
+            exit 1
+          fi
+
+          echo "OK - /weather endpoint returned HTTP $HTTP_STATUS."
+
+      # 6. Logi kontenera tylko przy błędzie
+      - name: Show container logs on failure
+        if: failure()
+        run: |
+          echo "Container logs:"
+          docker logs pogoda_api || true
+
+      # 7. Usunięcie kontenera
+      - name: Stop and remove container
+        if: always()
+        run: |
+          docker stop pogoda_api || true
+          docker rm pogoda_api || true
+
+      # 8. Logowanie do Docker Hub tylko po push na main
+      - name: Log in to Docker Hub
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # 9. Nadanie tagów: latest oraz skrócony SHA
+      - name: Tag Docker image
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+        run: |
+          SHORT_SHA="${GITHUB_SHA::7}"
+          HUB_IMAGE_BASE="${DOCKERHUB_USERNAME}/python_pogoda"
+
+          echo "Tagging image:"
+          echo " - $HUB_IMAGE_BASE:PawelBitkowski"
+          echo " - $HUB_IMAGE_BASE:$SHORT_SHA"
+
+          docker tag "$LOCAL_IMAGE_NAME" "$HUB_IMAGE_BASE:PawelBitkowski"
+          docker tag "$LOCAL_IMAGE_NAME" "$HUB_IMAGE_BASE:$SHORT_SHA"
+
+      # 10. Publikacja obu tagów do Docker Hub
+      - name: Push Docker image
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+        run: |
+          SHORT_SHA="${GITHUB_SHA::7}"
+          HUB_IMAGE_BASE="${DOCKERHUB_USERNAME}/python_pogoda"
+
+          docker push "$HUB_IMAGE_BASE:latest"
+          docker push "$HUB_IMAGE_BASE:$SHORT_SHA"
