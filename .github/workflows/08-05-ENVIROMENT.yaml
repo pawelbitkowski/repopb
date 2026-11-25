@@ -139,7 +139,7 @@ jobs:
         env:
           IMAGE_TAG: ${{ vars.IMAGE_TAG }}
         run: |
-          if [ "$IMAGE_TAG" != 'devpiotrkoska' ]; then
+          if [ "$IMAGE_TAG" != 'pb' ]; then
             echo "::error::Ustaw IMAGE_TAG=devpiotrkoska w Environment dev."
             exit 1
           fi
@@ -287,7 +287,7 @@ jobs:
         env:
           IMAGE_TAG: ${{ vars.IMAGE_TAG }}
         run: |
-          if [ "$IMAGE_TAG" != 'testpiotrkoska' ]; then
+          if [ "$IMAGE_TAG" != 'pb' ]; then
             echo "::error::Ustaw IMAGE_TAG=testpiotrkoska w Environment test."
             exit 1
           fi
@@ -435,7 +435,7 @@ jobs:
         env:
           IMAGE_TAG: ${{ vars.IMAGE_TAG }}
         run: |
-          if [ "$IMAGE_TAG" != 'prodpiotrkoska' ]; then
+          if [ "$IMAGE_TAG" != 'pb' ]; then
             echo "::error::Ustaw IMAGE_TAG=prodpiotrkoska w Environment prod."
             exit 1
           fi
