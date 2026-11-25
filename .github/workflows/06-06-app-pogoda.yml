@@ -110,7 +110,7 @@ jobs:
           echo " - $HUB_IMAGE_BASE:PawelBitkowski"
           echo " - $HUB_IMAGE_BASE:$SHORT_SHA"
 
-          docker tag "$LOCAL_IMAGE_NAME" "$HUB_IMAGE_BASE:latest"
+          docker tag "$LOCAL_IMAGE_NAME" "$HUB_IMAGE_BASE:PawelBitkowski"
           docker tag "$LOCAL_IMAGE_NAME" "$HUB_IMAGE_BASE:$SHORT_SHA"
 
       # 10. Publikacja obu tagów do Docker Hub
@@ -124,4 +124,3 @@ jobs:
 
           docker push "$HUB_IMAGE_BASE:latest"
           docker push "$HUB_IMAGE_BASE:$SHORT_SHA"
-          
