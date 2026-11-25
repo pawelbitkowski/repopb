@@ -1,0 +1,26 @@
+name: 01 - Building Blocks v3
+
+on:
+  #push:
+  workflow_dispatch:
+
+jobs:
+  # to jest osobna VM dla joba echo-hello
+  echo-hello:
+    name: Powitanie
+    runs-on: ubuntu-latest # okres jedynie wersjsa systemu operacyjnego - nier nie ze to bedzie uruchomione na tym samy runners, kazdy job dostaje nowa VM
+    steps:
+      - name: Say hello
+        run: echo "Hello, World!"
+
+  # to jest osobna VM dla joba echo-goodbye
+  echo-goodbye:
+    name: Pożegnanie
+    runs-on: ubuntu-latest
+    steps:
+      - name: Successful step
+        run: |
+          echo "I will succeed now"
+          exit 0
+      - name: Say goodbye
+        run: echo "Goodbye!"

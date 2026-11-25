@@ -25,7 +25,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-CWICZENIA/12-outputs      - name: Checkout code
+      - name: Checkout code
         uses: actions/checkout@v2
       - name: Run a one-line script
         run: echo Hello, world!

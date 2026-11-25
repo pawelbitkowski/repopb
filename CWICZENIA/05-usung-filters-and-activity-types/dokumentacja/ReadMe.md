@@ -3,6 +3,10 @@
 ## Dokumetacja tego Cwiaczenia 05
 teraz powinno dziala czyli path ma znaczenie :)
 
+### CHANGES 24.11.2026
+
+- test zmiany w dokumentacji
+
 ### CHAGENS 17.03.2026
 
 - test dodania pliku UPDATE.md
