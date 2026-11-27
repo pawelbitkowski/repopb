@@ -1,38 +1,48 @@
-name: 13 – Using Caching
+name: 13-02 Build Docker image with actions/cache 02
 
 on:
+  push:
+    branches: [ cw13 ]
+  pull_request:
+    branches: [ cw13 ]
   workflow_dispatch:
-    inputs:
-      use-cache:
-        type: boolean
-        description: Whether to execute cache step
-        default: true
+
+defaults:
+  run:
+    shell: bash
+    working-directory: ./CWICZENIA/13-caching/docker02
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        # working-directory: 13-caching/react-app
-        working-directory: CWICZENIA/13-caching/react-app
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v7
+      - name: Checkout sources
+        uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v7
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Cache dla katalogu z warstwami buildx
+      - name: Cache Docker layers
+        uses: actions/cache@v4
         with:
-          node-version: 24.x
+          path: |
+            /tmp/.buildx-cache
+          key: ${{ runner.os }}-docker-buildx-${{ hashFiles('Dockerfile', 'index.html') }}
+          restore-keys: |
+            ${{ runner.os }}-docker-buildx-
 
-      - name: Install dependencies
-        run: npm ci --include=dev
+      - name: Build Docker image (with cached layers)
+        uses: docker/build-push-action@v6
+        with:
+          context: ./CWICZENIA/13-caching/docker01
+          file: ./CWICZENIA/13-caching/docker01/Dockerfile
 
-      - name: Testing
-        run: npm run test -- --watchAll=false
+          # Bez pushowania do rejestru – przykład tylko do builda
+          push: false
+          tags: example-nginx:cache-actions-layers
 
-      - name: Building
-        run: npm run build
-
-      - name: Deploying to nonprod
-        run: echo "Deploying to nonprod"
+          # Wskazanie katalogu z cache’em buildx
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
