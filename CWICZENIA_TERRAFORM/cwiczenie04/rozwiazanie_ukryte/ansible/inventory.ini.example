@@ -1,0 +1,4 @@
+# Host agenta wskazany do ćwiczenia 04; nie tworzymy nowej VM.
+# Klucz podaj z kontrolera przez --private-key /home/student/.ssh/id_ed25519.
+[weather_agents]
+agent ansible_host=206.189.230.57 ansible_user=root
